@@ -98,7 +98,7 @@ const getMonthlyLoan = (amount, durationYears, APR) => {
   return amount * (MPR / (1 - Math.pow(1 + MPR, -durationMonths)));
 };
 
-const getLoanOffer = (data) => {
+const createLoanOffer = (data) => {
   data.amountIncrement = data.amount + 100;
   data.amountDecrement = data.amount - 100;
   data.durationIncrement = data.duration + 1;
@@ -136,6 +136,36 @@ const parseFormData = (request, callback) => {
   });
 };
 
+const getIndex = (res) => {
+  res.statusCode = 200;
+  res.setHeader("Content-Type", "text/html");
+
+  const content = LOAN_FORM_TEMPLATE({ apr: APR * 100 });
+  res.write(`${content}\n`);
+  res.end();
+};
+
+const getLoanOffer = (req, res) => {
+  res.statusCode = 200;
+  res.setHeader("Content-Type", "text/html");
+
+  const data = createLoanOffer(getParams(req.url));
+  const content = LOAN_OFFER_TEMPLATE(data);
+  res.write(`${content}\n`);
+  res.end();
+};
+
+const postLoanOffer = (req, res) => {
+  parseFormData(req, (parsedData) => {
+    res.statusCode = 200;
+    res.setHeader("Content-Type", "text/html");
+
+    const data = createLoanOffer(parsedData);
+    const content = LOAN_OFFER_TEMPLATE(data);
+    res.write(`${content}\n`);
+    res.end();
+  });
+};
 const SERVER = HTTP.createServer((req, res) => {
   const pathname = getPathname(req.url);
   let fileExtension = PATH.extname(pathname);
@@ -149,30 +179,11 @@ const SERVER = HTTP.createServer((req, res) => {
     } else {
       const method = req.method;
       if (pathname === "/" && method === "GET") {
-        res.statusCode = 200;
-        res.setHeader("Content-Type", "text/html");
-
-        const content = LOAN_FORM_TEMPLATE({ apr: APR * 100 });
-        res.write(`${content}\n`);
-        res.end();
+        getIndex(res);
       } else if (pathname === "/loan-offer" && method === "GET") {
-        res.statusCode = 200;
-        res.setHeader("Content-Type", "text/html");
-
-        const data = getLoanOffer(getParams(req.url));
-        const content = LOAN_OFFER_TEMPLATE(data);
-        res.write(`${content}\n`);
-        res.end();
+        getLoanOffer(req, res);
       } else if (pathname === "/loan-offer" && method === "POST") {
-        parseFormData(req, (parsedData) => {
-          res.statusCode = 200;
-          res.setHeader("Content-Type", "text/html");
-
-          const data = getLoanOffer(parsedData);
-          const content = LOAN_OFFER_TEMPLATE(data);
-          res.write(`${content}\n`);
-          res.end();
-        });
+        postLoanOffer(req, res);
       } else {
         res.statusCode = 404;
         res.end();
