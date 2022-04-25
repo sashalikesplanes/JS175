@@ -2,6 +2,14 @@ const HTTP = require("http");
 const URL = require("url").URL;
 const HANDLEBARS = require("handlebars");
 const FS = require("fs");
+const PATH = require("path");
+const MIME_TYPES = {
+  ".css": "text/css",
+  ".js": "application/javascript",
+  ".jpg": "image/jpeg",
+  ".png": "image/png",
+  ".ico": "image/x-icon",
+};
 
 const PORT = 3000;
 const APR = 0.05;
@@ -114,10 +122,12 @@ const getPathname = (path) => {
 
 const SERVER = HTTP.createServer((req, res) => {
   const pathname = getPathname(req.url);
+  let fileExtension = PATH.extname(pathname);
 
   FS.readFile(`./public/${pathname}`, (err, data) => {
     if (data) {
       res.statusCode = 200;
+      res.setHeader("Content-Type", `${MIME_TYPES[fileExtension]}`);
       res.write(`${data}\n`);
       res.end();
     } else {
