@@ -4,6 +4,9 @@ const HANDLEBARS = require("handlebars");
 const FS = require("fs");
 const PATH = require("path");
 const QUERYSTRING = require("querystring");
+const ROUTER = require("router");
+const FINALHANDLER = require("finalhandler");
+const SERVESTATIC = require("serve-static");
 
 const MIME_TYPES = {
   ".css": "text/css",
@@ -15,6 +18,8 @@ const MIME_TYPES = {
 
 const PORT = 3000;
 const APR = 0.05;
+
+const router = ROUTER();
 
 const LOAN_OFFER_SOURCE = `
 <!DOCTYPE html>
@@ -136,16 +141,18 @@ const parseFormData = (request, callback) => {
   });
 };
 
-const getIndex = (res) => {
+router.use(SERVESTATIC("public"));
+
+router.get("/", (req, res) => {
   res.statusCode = 200;
   res.setHeader("Content-Type", "text/html");
 
   const content = LOAN_FORM_TEMPLATE({ apr: APR * 100 });
   res.write(`${content}\n`);
   res.end();
-};
+});
 
-const getLoanOffer = (req, res) => {
+router.get("/loan-offer", (req, res) => {
   res.statusCode = 200;
   res.setHeader("Content-Type", "text/html");
 
@@ -153,9 +160,9 @@ const getLoanOffer = (req, res) => {
   const content = LOAN_OFFER_TEMPLATE(data);
   res.write(`${content}\n`);
   res.end();
-};
+});
 
-const postLoanOffer = (req, res) => {
+router.post("/loan-offer", (req, res) => {
   parseFormData(req, (parsedData) => {
     res.statusCode = 200;
     res.setHeader("Content-Type", "text/html");
@@ -165,31 +172,15 @@ const postLoanOffer = (req, res) => {
     res.write(`${content}\n`);
     res.end();
   });
-};
-const SERVER = HTTP.createServer((req, res) => {
-  const pathname = getPathname(req.url);
-  let fileExtension = PATH.extname(pathname);
+});
 
-  FS.readFile(`./public/${pathname}`, (err, data) => {
-    if (data) {
-      res.statusCode = 200;
-      res.setHeader("Content-Type", `${MIME_TYPES[fileExtension]}`);
-      res.write(`${data}\n`);
-      res.end();
-    } else {
-      const method = req.method;
-      if (pathname === "/" && method === "GET") {
-        getIndex(res);
-      } else if (pathname === "/loan-offer" && method === "GET") {
-        getLoanOffer(req, res);
-      } else if (pathname === "/loan-offer" && method === "POST") {
-        postLoanOffer(req, res);
-      } else {
-        res.statusCode = 404;
-        res.end();
-      }
-    }
-  });
+router.get("*", (req, res) => {
+  res.statusCode = 404;
+  res.end();
+});
+
+const SERVER = HTTP.createServer((req, res) => {
+  router(req, res, FINALHANDLER(req, res));
 });
 
 SERVER.listen(PORT, () => {
