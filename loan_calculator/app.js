@@ -1,6 +1,7 @@
 const HTTP = require("http");
 const URL = require("url").URL;
 const HANDLEBARS = require("handlebars");
+const FS = require("fs");
 
 const PORT = 3000;
 const APR = 0.05;
@@ -60,6 +61,7 @@ const LOAN_FORM_SOURCE = `<!DOCTYPE html>
     <title>Loan Calculator</title>
     <link rel="stylesheet" href="/assets/css/styles.css">
   </head>
+
   <body>
     <article>
       <h1>Loan Calculator</h1>
@@ -112,24 +114,33 @@ const getPathname = (path) => {
 
 const SERVER = HTTP.createServer((req, res) => {
   const pathname = getPathname(req.url);
-  if (pathname === "/") {
-    res.statusCode = 200;
-    res.setHeader("Content-Type", "text/html");
-    res.write(LOAN_FORM_TEMPLATE({ apr: APR * 100 }));
-    res.end();
-  } else if (pathname === "/loan-offer") {
-    res.statusCode = 200;
 
-    const data = getLoanOffer(getParams(req.url));
+  FS.readFile(`./public/${pathname}`, (err, data) => {
+    if (data) {
+      res.statusCode = 200;
+      res.write(`${data}\n`);
+      res.end();
+    } else {
+      if (pathname === "/") {
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "text/html");
+        res.write(LOAN_FORM_TEMPLATE({ apr: APR * 100 }));
+        res.end();
+      } else if (pathname === "/loan-offer") {
+        res.statusCode = 200;
 
-    res.setHeader("Content-Type", "text/html");
-    res.write(LOAN_OFFER_TEMPLATE(data));
+        const data = getLoanOffer(getParams(req.url));
 
-    res.end();
-  } else {
-    res.statusCode = 404;
-    res.end();
-  }
+        res.setHeader("Content-Type", "text/html");
+        res.write(LOAN_OFFER_TEMPLATE(data));
+
+        res.end();
+      } else {
+        res.statusCode = 404;
+        res.end();
+      }
+    }
+  });
 });
 
 SERVER.listen(PORT, () => {
