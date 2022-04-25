@@ -60,24 +60,46 @@ const getMonthlyLoan = (params) => {
 };
 
 const getLoanOffer = (params) => {
+  const amount = params.get("amount");
+  const durationYears = params.get("duration");
   const monthly = getMonthlyLoan(params);
   const content = `
-    <tr>
-      <th>Amount:</th>
-      <td>$${params.get("amount")}</td>
-    </tr>
-    <tr>
-      <th>Duration:</th>
-      <td>${params.get("duration")} years</td>
-    </tr>
-    <tr>
-      <th>APR:</th>
-      <td>${APR * 100}%</td>
-    </tr>
-    <tr>
-      <th>Monthly payment:</th>
-      <td>$${monthly.toFixed(2)}</td>
-    </tr>`;
+  <tr>
+  <th>Amount:</th>
+  <td>
+    <a href='/?amount=${Number(amount) - 100}&duration=${Number(
+    durationYears
+  )}'>- $100</a>
+  </td>
+  <td>$${amount}</td>
+  <td>
+    <a href='/?amount=${Number(amount) + 100}&duration=${Number(
+    durationYears
+  )}'>+ $100</a>
+  </td>
+</tr>
+<tr>
+  <th>Duration:</th>
+  <td>
+    <a href='/?amount=${Number(amount)}&duration=${
+    Number(durationYears) - 1
+  }'>- 1 year</a>
+  </td>
+  <td>${durationYears} years</td>
+  <td>
+    <a href='/?amount=${Number(amount)}&duration=${
+    Number(durationYears) + 1
+  }'>+ 1 year</a>
+  </td>
+</tr>
+<tr>
+  <th>APR:</th>
+  <td colspan='3'>${APR}%</td>
+</tr>
+<tr>
+  <th>Monthly payment:</th>
+  <td colspan='3'>$${monthly}</td>
+</tr>`;
   return HTML_START + content + HTML_END;
 };
 
