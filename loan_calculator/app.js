@@ -3,6 +3,8 @@ const URL = require("url").URL;
 const HANDLEBARS = require("handlebars");
 const FS = require("fs");
 const PATH = require("path");
+const QUERYSTRING = require("querystring");
+
 const MIME_TYPES = {
   ".css": "text/css",
   ".js": "application/javascript",
@@ -73,7 +75,7 @@ const LOAN_FORM_SOURCE = `<!DOCTYPE html>
   <body>
     <article>
       <h1>Loan Calculator</h1>
-      <form action="/loan-offer" method="get">
+      <form action="/loan-offer" method="post">
         <p>All loans are offered at an APR of {{apr}}%.</p>
         <label for="amount">How much do you want to borrow (in dollars)?</label>
         <input type="number" name="amount" value="">
@@ -96,13 +98,9 @@ const getMonthlyLoan = (amount, durationYears, APR) => {
   return amount * (MPR / (1 - Math.pow(1 + MPR, -durationMonths)));
 };
 
-const getLoanOffer = (params) => {
-  const data = {};
-
-  data.amount = Number(params.get("amount"));
+const getLoanOffer = (data) => {
   data.amountIncrement = data.amount + 100;
   data.amountDecrement = data.amount - 100;
-  data.duration = Number(params.get("duration"));
   data.durationIncrement = data.duration + 1;
   data.durationDecrement = data.duration - 1;
   data.aprPercent = APR * 100;
@@ -113,11 +111,29 @@ const getLoanOffer = (params) => {
 };
 
 const getParams = (path) => {
-  return new URL(path, `http://localhost:${PORT}`).searchParams;
+  const params = new URL(path, `http://localhost:${PORT}`).searchParams;
+  const data = {};
+  data.amount = Number(params.get("amount"));
+  data.duration = Number(params.get("duration"));
+
+  return data;
 };
 
 const getPathname = (path) => {
   return new URL(path, `http://localhost:${PORT}`).pathname;
+};
+
+const parseFormData = (request, callback) => {
+  let body = "";
+  request.on("data", (chunk) => {
+    body += chunk.toString();
+  });
+  request.on("end", () => {
+    let data = QUERYSTRING.parse(body);
+    data.amount = Number(data.amount);
+    data.duration = Number(data.duration);
+    callback(data);
+  });
 };
 
 const SERVER = HTTP.createServer((req, res) => {
@@ -131,20 +147,32 @@ const SERVER = HTTP.createServer((req, res) => {
       res.write(`${data}\n`);
       res.end();
     } else {
-      if (pathname === "/") {
+      const method = req.method;
+      if (pathname === "/" && method === "GET") {
         res.statusCode = 200;
         res.setHeader("Content-Type", "text/html");
-        res.write(LOAN_FORM_TEMPLATE({ apr: APR * 100 }));
+
+        const content = LOAN_FORM_TEMPLATE({ apr: APR * 100 });
+        res.write(`${content}\n`);
         res.end();
-      } else if (pathname === "/loan-offer") {
+      } else if (pathname === "/loan-offer" && method === "GET") {
         res.statusCode = 200;
+        res.setHeader("Content-Type", "text/html");
 
         const data = getLoanOffer(getParams(req.url));
-
-        res.setHeader("Content-Type", "text/html");
-        res.write(LOAN_OFFER_TEMPLATE(data));
-
+        const content = LOAN_OFFER_TEMPLATE(data);
+        res.write(`${content}\n`);
         res.end();
+      } else if (pathname === "/loan-offer" && method === "POST") {
+        parseFormData(req, (parsedData) => {
+          res.statusCode = 200;
+          res.setHeader("Content-Type", "text/html");
+
+          const data = getLoanOffer(parsedData);
+          const content = LOAN_OFFER_TEMPLATE(data);
+          res.write(`${content}\n`);
+          res.end();
+        });
       } else {
         res.statusCode = 404;
         res.end();
