@@ -1,8 +1,11 @@
 const express = require("express");
 const app = express();
 
+app.set("views", "./views");
+app.set("view engine", "pug");
+
 app.get("/", (req, res) => {
-  res.send("Hello Bitch\n");
+  res.render("hello-world-english");
 });
 
 app.listen(3000, "localhost", () => {
