@@ -1,35 +1,32 @@
-doctype html
+extends layout
 
-html
-  head
-    title This is Title
-    meta(charset="UTF-8")
-    link(rel="stylesheet" href="/stylesheets/application.css")
-  body
-    nav
-      ul
-        li
-          a.current(href="/english")
-            img.flag(src="/images/flag-of-United-States-of-America.png"
-                     alt="US Flag"
-                     title="Go to US English site")
-        li
-          a(href="/french")
-            img.flag(src="/images/flag-of-France.png"
-                     alt="Drapeau de la france"
-                     title="Aller sur le site français")
-        li
-          a(href="/serbian")
-            img.flag(src="/images/flag-of-Serbia.png"
-                     alt="Застава Србије"
-                     title="Идите на српски сајт")
-        li
-          a(href="/russian")
-            img.flag(src="/images/flag-of-Russia.png"
-                     alt="Русский флаг"
-                     title="Иди на русский сайт")
-    header
-      h1 Hello Adele!
-    main
-      p I am software
-      img(src="/images/earth.jpg" alt="The Earth" title="The Earth")
+block page_title
+  title This is Title
+block navigation_links
+  ul
+    li
+      a.current(href="/english")
+        img.flag(src="/images/flag-of-United-States-of-America.png"
+                  alt="US Flag"
+                  title="Go to US English site")
+    li
+      a(href="/french")
+        img.flag(src="/images/flag-of-France.png"
+                  alt="Drapeau de la france"
+                  title="Aller sur le site français")
+    li
+      a(href="/serbian")
+        img.flag(src="/images/flag-of-Serbia.png"
+                  alt="Застава Србије"
+                  title="Идите на српски сајт")
+    li
+      a(href="/russian")
+        img.flag(src="/images/flag-of-Russia.png"
+                  alt="Русский флаг"
+                  title="Иди на русский сайт")
+block greeting
+  h1 Hello Adele!
+
+block software_engineer
+  p I am software
+  img(src="/images/earth.jpg" alt="The Earth" title="The Earth")
