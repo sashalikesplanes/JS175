@@ -17,19 +17,31 @@ app.get("/", (req, res) => {
 });
 
 app.get("/english", (req, res) => {
-  res.render("hello-world-english", { currentPath: req.path });
+  res.render("hello-world-english", {
+    currentPath: req.path,
+    language: "en-GB",
+  });
 });
 
 app.get("/french", (req, res) => {
-  res.render("hello-world-french", { currentPath: req.path });
+  res.render("hello-world-french", {
+    currentPath: req.path,
+    language: "fr-FR",
+  });
 });
 
 app.get("/serbian", (req, res) => {
-  res.render("hello-world-serbian", { currentPath: req.path });
+  res.render("hello-world-serbian", {
+    currentPath: req.path,
+    language: "sr-Cyrl-CS",
+  });
 });
 
 app.get("/russian", (req, res) => {
-  res.render("hello-world-russian", { currentPath: req.path });
+  res.render("hello-world-russian", {
+    currentPath: req.path,
+    language: "ru-RU",
+  });
 });
 
 app.listen(3000, "localhost", () => {
