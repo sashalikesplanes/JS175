@@ -7,15 +7,15 @@ block content
       dt 
         label(for="firstName") First Name:
       dd 
-        input(type="text" id="firstName" name="firstName")
+        input(type="text" id="firstName" name="firstName" value=firstName || "")
       dt 
         label(for="lastName") Last Name:
       dd 
-        input(type="text" id="lastName" name="lastName")
+        input(type="text" id="lastName" name="lastName" value=lastName || "")
       dt 
         label(for="phoneNumber") Phone Number:
       dd 
-        input(type="text" id="phoneNumber" name="phoneNumber" placeholder="###-####-####")
+        input(type="text" id="phoneNumber" name="phoneNumber" placeholder="###-###-####" value=phoneNumber || "")
     fieldset
       input(type="submit")
       button.cancel(formaction="/contacts" formmethod="get") Cancel

@@ -60,27 +60,98 @@ app.get("/contacts/new", (req, res) => {
   res.render("new-contact");
 });
 
-app.post("/contacts/new", (req, res) => {
-  const errorMessages = [];
-  if (req.body.firstName.length === 0) {
-    errorMessages.push("First name is required");
-  }
-  if (req.body.lastName.length === 0) {
-    errorMessages.push("Last name is required");
-  }
-  if (req.body.phoneNumber.length === 0) {
-    errorMessages.push("Phone number is required");
-  }
+app.post(
+  "/contacts/new",
+  (req, res, next) => {
+    for (const field in req.body) {
+      req.body[field] = req.body[field].trim();
+    }
+    next();
+  },
+  (req, res, next) => {
+    res.locals.errorMessages = [];
+    next();
+  },
+  (req, res, next) => {
+    if (req.body.firstName.length === 0) {
+      res.locals.errorMessages.push("First name is required");
+    }
 
-  if (errorMessages.length > 0) {
-    res.render("new-contact", {
-      errorMessages,
+    next();
+  },
+  (req, res, next) => {
+    if (req.body.lastName.length === 0) {
+      res.locals.errorMessages.push("Last name is required");
+    }
+
+    next();
+  },
+  (req, res, next) => {
+    if (req.body.phoneNumber.length === 0) {
+      res.locals.errorMessages.push("Phone number is required");
+    }
+
+    next();
+  },
+  (req, res, next) => {
+    if (req.body.firstName.length > 25) {
+      res.locals.errorMessages.push("First name is too long");
+    }
+
+    next();
+  },
+  (req, res, next) => {
+    if (req.body.lastName.length > 25) {
+      res.locals.errorMessages.push("Last name is too long");
+    }
+
+    next();
+  },
+  (req, res, next) => {
+    if (req.body.firstName.match(/[^a-z]/gi)) {
+      res.locals.errorMessages.push(
+        "First name contains non letter characters"
+      );
+    }
+    next();
+  },
+  (req, res, next) => {
+    if (req.body.lastName.match(/[^a-z]/gi)) {
+      res.locals.errorMessages.push("Last name contains non letter characters");
+    }
+    next();
+  },
+  (req, res, next) => {
+    if (!req.body.phoneNumber.match(/\d{3}-\d{3}-\d{4}/g)) {
+      res.locals.errorMessages.push(
+        "Phone number does not match format ###-###-####"
+      );
+    }
+    next();
+  },
+  (req, res, next) => {
+    contactData.forEach((contact) => {
+      if (
+        contact.firstName === req.body.firstName &&
+        contact.lastName === req.body.lastName
+      ) {
+        res.locals.errorMessages.push("Contact with this name exists");
+      }
     });
-  } else {
+    next();
+  },
+  (req, res, next) => {
+    if (res.locals.errorMessages.length > 0) {
+      res.render("new-contact", { ...req.body });
+    } else {
+      next();
+    }
+  },
+  (req, res) => {
     contactData.push({ ...req.body });
 
     res.redirect("/contacts");
   }
-});
+);
 
 app.listen(3000, "localhost", () => console.log("Listening to port 3000"));
