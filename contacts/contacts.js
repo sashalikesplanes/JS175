@@ -46,6 +46,7 @@ app.set("view engine", "pug");
 
 app.use(express.static("public"));
 app.use(morgan("common"));
+app.use(express.urlencoded({ extended: false }));
 
 app.get("/", (req, res) => res.redirect("/contacts"));
 
@@ -57,6 +58,12 @@ app.get("/contacts", (req, res) => {
 
 app.get("/contacts/new", (req, res) => {
   res.render("new_contact");
+});
+
+app.post("/contacts/new", (req, res) => {
+  contactData.push({ ...req.body });
+
+  res.redirect("/contacts");
 });
 
 app.listen(3000, "localhost", () => console.log("Listening to port 3000"));
