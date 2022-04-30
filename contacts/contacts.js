@@ -62,18 +62,23 @@ app.get("/contacts/new", (req, res) => {
   res.render("new-contact");
 });
 
+const validateName = (name, whichName) => {
+  return body(name)
+    .trim()
+    .isLength({ min: 1 })
+    .withMessage(`${whichName} is required`)
+    .bail()
+    .isLength({ max: 25 })
+    .withMessage(`${whichName} too long`)
+    .isAlpha()
+    .withMessage(`${whichName} must be alphabetic`);
+};
+
 app.post(
   "/contacts/new",
   [
-    body("firstName")
-      .trim()
-      .isLength({ min: 1 })
-      .withMessage("First name is required")
-      .bail()
-      .isLength({ max: 25 })
-      .withMessage("First name too long")
-      .isAlpha()
-      .withMessage("First name must be alphabetic"),
+    validateName("firstName", "First Name"),
+    validateName("lastName", "Last Name"),
 
     body("lastName")
       .trim()
