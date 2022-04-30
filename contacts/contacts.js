@@ -1,5 +1,7 @@
 const express = require("express");
 const morgan = require("morgan");
+const { body, validationResult } = require("express-validator");
+
 const app = express();
 
 let contactData = [
@@ -62,87 +64,42 @@ app.get("/contacts/new", (req, res) => {
 
 app.post(
   "/contacts/new",
-  (req, res, next) => {
-    for (const field in req.body) {
-      req.body[field] = req.body[field].trim();
-    }
-    next();
-  },
-  (req, res, next) => {
-    res.locals.errorMessages = [];
-    next();
-  },
-  (req, res, next) => {
-    if (req.body.firstName.length === 0) {
-      res.locals.errorMessages.push("First name is required");
-    }
+  [
+    body("firstName")
+      .trim()
+      .isLength({ min: 1 })
+      .withMessage("First name is required")
+      .bail()
+      .isLength({ max: 25 })
+      .withMessage("First name too long")
+      .isAlpha()
+      .withMessage("First name must be alphabetic"),
 
-    next();
-  },
-  (req, res, next) => {
-    if (req.body.lastName.length === 0) {
-      res.locals.errorMessages.push("Last name is required");
-    }
+    body("lastName")
+      .trim()
+      .isLength({ min: 1 })
+      .withMessage("Last name is required")
+      .bail()
+      .isLength({ max: 25 })
+      .withMessage("Last name too long")
+      .isAlpha()
+      .withMessage("Last name must be alphabetic"),
 
-    next();
-  },
+    body("phoneNumber")
+      .trim()
+      .isLength({ min: 1 })
+      .withMessage("Phone number is required")
+      .bail()
+      .matches(/^\d{3}-\d{3}-\d{4}$/)
+      .withMessage("Invalid phone number"),
+  ],
   (req, res, next) => {
-    if (req.body.phoneNumber.length === 0) {
-      res.locals.errorMessages.push("Phone number is required");
-    }
-
-    next();
-  },
-  (req, res, next) => {
-    if (req.body.firstName.length > 25) {
-      res.locals.errorMessages.push("First name is too long");
-    }
-
-    next();
-  },
-  (req, res, next) => {
-    if (req.body.lastName.length > 25) {
-      res.locals.errorMessages.push("Last name is too long");
-    }
-
-    next();
-  },
-  (req, res, next) => {
-    if (req.body.firstName.match(/[^a-z]/gi)) {
-      res.locals.errorMessages.push(
-        "First name contains non letter characters"
-      );
-    }
-    next();
-  },
-  (req, res, next) => {
-    if (req.body.lastName.match(/[^a-z]/gi)) {
-      res.locals.errorMessages.push("Last name contains non letter characters");
-    }
-    next();
-  },
-  (req, res, next) => {
-    if (!req.body.phoneNumber.match(/\d{3}-\d{3}-\d{4}/g)) {
-      res.locals.errorMessages.push(
-        "Phone number does not match format ###-###-####"
-      );
-    }
-    next();
-  },
-  (req, res, next) => {
-    contactData.forEach((contact) => {
-      if (
-        contact.firstName === req.body.firstName &&
-        contact.lastName === req.body.lastName
-      ) {
-        res.locals.errorMessages.push("Contact with this name exists");
-      }
-    });
-    next();
-  },
-  (req, res, next) => {
-    if (res.locals.errorMessages.length > 0) {
-      res.render("new-contact", { ...req.body });
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.render("new-contact", {
+        errorMessages: errors.array().map((error) => error.msg),
+        ...req.body,
+      });
     } else {
       next();
     }
