@@ -39,41 +39,24 @@ app.locals.currentPathClass = (path, currentPath) => {
   return path === currentPath ? "current" : "";
 };
 
+const helloWorld = (view, language) => {
+  return (req, res) => {
+    res.render(view, {
+      countries: COUNTRY_DATA,
+      currentPath: req.path,
+      language: language,
+    });
+  };
+};
+
 app.get("/", (req, res) => {
   res.redirect("/english");
 });
 
-app.get("/english", (req, res) => {
-  res.render("hello-world-english", {
-    countries: COUNTRY_DATA,
-    currentPath: req.path,
-    language: "en-GB",
-  });
-});
-
-app.get("/french", (req, res) => {
-  res.render("hello-world-french", {
-    countries: COUNTRY_DATA,
-    currentPath: req.path,
-    language: "fr-FR",
-  });
-});
-
-app.get("/serbian", (req, res) => {
-  res.render("hello-world-serbian", {
-    countries: COUNTRY_DATA,
-    currentPath: req.path,
-    language: "sr-Cyrl-CS",
-  });
-});
-
-app.get("/russian", (req, res) => {
-  res.render("hello-world-russian", {
-    countries: COUNTRY_DATA,
-    currentPath: req.path,
-    language: "ru-RU",
-  });
-});
+app.get("/english", helloWorld("hello-world-english", "en-GB"));
+app.get("/french", helloWorld("hello-world-french", "fr-FR"));
+app.get("/serbian", helloWorld("hello-world-serbian", "sr-Cyrl-rs"));
+app.get("/russian", helloWorld("hello-world-russian", "ru-RU"));
 
 app.listen(3000, "localhost", () => {
   console.log("Listening on port 3000");
