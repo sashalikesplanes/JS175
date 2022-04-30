@@ -7,7 +7,7 @@ const store = require("connect-loki");
 const app = express();
 const LokiStore = store(session);
 
-let contactData = [
+const contactData = [
   {
     firstName: "Mike",
     lastName: "Jones",
@@ -46,6 +46,8 @@ const sortContacts = (contacts) => {
   });
 };
 
+const clone = (object) => JSON.parse(JSON.stringify(object));
+
 app.set("views", "./views");
 app.set("view engine", "pug");
 
@@ -67,12 +69,18 @@ app.use(
     store: new LokiStore({}),
   })
 );
+app.use((req, res, next) => {
+  if (!("contactData" in req.session)) {
+    req.session.contactData = clone(contactData);
+  }
+  next();
+});
 
 app.get("/", (req, res) => res.redirect("/contacts"));
 
 app.get("/contacts", (req, res) => {
   res.render("contacts", {
-    contacts: sortContacts(contactData),
+    contacts: sortContacts(req.session.contactData),
   });
 });
 
@@ -128,7 +136,7 @@ app.post(
     }
   },
   (req, res) => {
-    contactData.push({ ...req.body });
+    req.session.contactData.push({ ...req.body });
 
     res.redirect("/contacts");
   }
